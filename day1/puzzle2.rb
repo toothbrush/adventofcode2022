@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+calories_this_elf = 0
+calories_max = [0]
+
+$stdin.read.lines.each do |l|
+  this_line = l.strip
+  if this_line == ""
+    if calories_max.max < calories_this_elf
+      calories_max.push(calories_this_elf)
+      if calories_max.length > 3
+        calories_max = calories_max.sort.reverse.take(3)
+      end
+    end
+
+    calories_this_elf = 0
+  else
+    calories_this_elf += Integer(this_line)
+  end
+end
+
+puts calories_max
+puts calories_max.sum
