@@ -3,7 +3,7 @@
 calories_this_elf = 0
 calories_max = [0]
 
-$stdin.read.lines.each do |l|
+$stdin.each_line do |l|
   this_line = l.strip
 
   if this_line == ""
