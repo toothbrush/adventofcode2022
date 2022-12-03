@@ -47,14 +47,14 @@ func fromChallenge(c string) Move {
 	panic(fmt.Sprintf("unreasonable challenge provided: %s", c))
 }
 
-func fromResponse(c string) Move {
+func desiredOutcome(c string) PairOutcome {
 	switch c {
 	case "X":
-		return Rock
+		return Lose
 	case "Y":
-		return Paper
+		return Draw
 	case "Z":
-		return Scissors
+		return Win
 	}
 	panic(fmt.Sprintf("unreasonable response provided: %s", c))
 }
@@ -87,6 +87,39 @@ func (c Move) losesTo(r Move) PairOutcome {
 			return Lose
 		case Scissors:
 			return Draw
+		}
+	}
+	panic("impossible")
+}
+
+func whatShouldIPlay(challenge Move, desired PairOutcome) Move {
+	switch challenge {
+	case Rock:
+		switch desired {
+		case Win:
+			return Paper
+		case Draw:
+			return Rock
+		case Lose:
+			return Scissors
+		}
+	case Paper:
+		switch desired {
+		case Win:
+			return Scissors
+		case Draw:
+			return Paper
+		case Lose:
+			return Rock
+		}
+	case Scissors:
+		switch desired {
+		case Win:
+			return Rock
+		case Draw:
+			return Scissors
+		case Lose:
+			return Paper
 		}
 	}
 	panic("impossible")
@@ -134,10 +167,7 @@ func main() {
 		line = strings.Split(t, " ")
 
 		challenge = fromChallenge(line[0])
-		response = fromResponse(line[1])
-
-		fmt.Printf("challenge: %s\n", challenge)
-		fmt.Printf("response:  %s\n", response)
+		response = whatShouldIPlay(challenge, desiredOutcome(line[1]))
 
 		thisRoundPoints = pointsForRound(challenge, response)
 		fmt.Printf("points for round = %d\n", thisRoundPoints)
