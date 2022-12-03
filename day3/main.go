@@ -8,11 +8,12 @@ import (
 	"unicode"
 )
 
-func findCommonalities(rucksack1 string, rucksack2 string) []rune {
+func findCommonalities(rucksack1 string, rucksack2 string, rucksack3 string) []rune {
 	common := map[rune]bool{}
 
 	for _, c := range rucksack1 {
-		if strings.Contains(rucksack2, string(c)) {
+		if strings.Contains(rucksack2, string(c)) &&
+			strings.Contains(rucksack3, string(c)) {
 			common[c] = true
 		}
 	}
@@ -40,9 +41,11 @@ func main() {
 	s := bufio.NewScanner(os.Stdin)
 
 	var t string
-	var rucksack1 string
-	var rucksack2 string
-	var items int
+	var rucksack []string
+	rucksack = make([]string, 3)
+
+	var positionInGroup int
+	positionInGroup = 0
 
 	var totalPriority int
 	totalPriority = 0
@@ -50,23 +53,22 @@ func main() {
 	for s.Scan() {
 		t = s.Text()
 
-		items = len(t)
-		if items%2 != 0 {
-			panic("non-even string length")
+		rucksack[positionInGroup] = t
+		positionInGroup++
+
+		if positionInGroup == 3 {
+			// we're at the end of a 3-group
+			positionInGroup = 0
+
+			commonalities := findCommonalities(rucksack[0], rucksack[1], rucksack[2])
+			if len(commonalities) != 1 {
+				fmt.Println(commonalities)
+				panic("Found more than 1 common element!")
+			}
+
+			fmt.Printf("%s, priority %d\n", string(commonalities[0]), priority(commonalities[0]))
+			totalPriority += priority(commonalities[0])
 		}
-
-		rucksack1 = string(t[:int(items/2)])
-		rucksack2 = string(t[int(items/2):])
-
-		fmt.Printf("%s // %s\n", rucksack1, rucksack2)
-		commonalities := findCommonalities(rucksack1, rucksack2)
-		if len(commonalities) != 1 {
-			fmt.Println(commonalities)
-			panic("Found more than 1 common element!")
-		}
-
-		fmt.Printf("%s, priority %d\n", string(commonalities[0]), priority(commonalities[0]))
-		totalPriority += priority(commonalities[0])
 	}
 	fmt.Printf("total priority = %d\n", totalPriority)
 }
