@@ -38,6 +38,9 @@ func toAssignment(s string) (Section, error) {
 		return Section{}, err
 	}
 
+	if begin > end {
+		return Section{}, fmt.Errorf("oh no, begin > end for range: %s", s)
+	}
 	return Section{begin: begin, end: end}, nil
 }
 
