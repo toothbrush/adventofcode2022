@@ -31,11 +31,11 @@ func toAssignment(s string) (Section, error) {
 	}
 	begin, err := strconv.Atoi(split[0])
 	if err != nil {
-		return Section{}, nil
+		return Section{}, err
 	}
 	end, err := strconv.Atoi(split[1])
 	if err != nil {
-		return Section{}, nil
+		return Section{}, err
 	}
 
 	return Section{begin: begin, end: end}, nil
