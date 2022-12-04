@@ -50,7 +50,7 @@ func run() error {
 	var x Section
 	var y Section
 
-	overlaps := 0
+	fullyOverlaps := 0
 
 	for s.Scan() {
 		t = s.Text()
@@ -72,11 +72,11 @@ func run() error {
 		fmt.Printf("%v, %v\n", x, y)
 
 		if x.fullyContains(y) || y.fullyContains(x) {
-			overlaps++
+			fullyOverlaps++
 		}
 	}
 
-	fmt.Printf("overlaps = %d\n", overlaps)
+	fmt.Printf("fully overlaps = %d\n", fullyOverlaps)
 
 	return nil
 }
