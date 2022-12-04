@@ -24,6 +24,10 @@ func (s Section) fullyContains(t Section) bool {
 	return s.begin <= t.begin && s.end >= t.end
 }
 
+func (s Section) overlaps(t Section) bool {
+	return s.begin <= t.end && s.end >= t.begin
+}
+
 func toAssignment(s string) (Section, error) {
 	split := strings.Split(s, "-")
 	if len(split) != 2 {
@@ -54,6 +58,7 @@ func run() error {
 	var y Section
 
 	fullyOverlaps := 0
+	somewhatOverlaps := 0
 
 	for s.Scan() {
 		t = s.Text()
@@ -77,9 +82,14 @@ func run() error {
 		if x.fullyContains(y) || y.fullyContains(x) {
 			fullyOverlaps++
 		}
+
+		if x.overlaps(y) {
+			somewhatOverlaps++
+		}
 	}
 
 	fmt.Printf("fully overlaps = %d\n", fullyOverlaps)
+	fmt.Printf("partially overlaps = %d\n", somewhatOverlaps)
 
 	return nil
 }
