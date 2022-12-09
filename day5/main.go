@@ -23,7 +23,7 @@ func (s State) String() string {
 	for i, crates := range s.crates {
 		response += fmt.Sprintf("%d: ", i+1)
 		for _, item := range crates {
-			response += fmt.Sprintf("%s ", string(item))
+			response += fmt.Sprintf("[%s] ", string(item))
 		}
 		response += "\n"
 	}
@@ -44,16 +44,19 @@ func run() (err error) {
 		t = s.Text()
 		if crates.MatchString(t) {
 			// we're still reading crates
-			itemAt := t[1]
-			state.crates[0] = append([]rune{rune(itemAt)}, state.crates[0]...)
 			fmt.Printf("%s\n", t)
+			for pos := 0; pos < len(state.crates); pos++ {
+				itemAt := t[4*pos+1]
+				if regexp.MustCompile("[A-Z]").MatchString(string(itemAt)) {
+					state.crates[pos] = append([]rune{rune(itemAt)}, state.crates[pos]...)
+				}
+			}
 		}
 
 		if moves.MatchString(t) {
 			// now we're reading moves
 			// fmt.Printf("%s\n", t)
 		}
-
 	}
 
 	fmt.Printf("%v\n", state)
