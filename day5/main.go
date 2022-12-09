@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 )
 
 func main() {
@@ -35,7 +36,7 @@ func run() (err error) {
 	var t string
 
 	crates := regexp.MustCompile("\\[[A-Z]\\]")
-	moves := regexp.MustCompile("^move")
+	moves := regexp.MustCompile("^move ([0-9]+) from ([0-9]+) to ([0-9]+)")
 
 	state := State{}
 	state.crates = make([][]rune, 9) // Hm, hard-coded 9 crates
@@ -55,9 +56,28 @@ func run() (err error) {
 			}
 		}
 
-		if moves.MatchString(t) {
+		if move := moves.FindStringSubmatch(t); len(move) > 0 {
 			// now we're reading moves
-			// fmt.Printf("%s\n", t)
+			fmt.Printf("%v\n", move)
+			iterations, err := strconv.Atoi(move[1])
+			if err != nil {
+				return err
+			}
+			from, err := strconv.Atoi(move[2])
+			if err != nil {
+				return err
+			}
+			to, err := strconv.Atoi(move[3])
+			if err != nil {
+				return err
+			}
+			for i := 0; i < iterations; i++ {
+				fmt.Printf("moving from %d to %d #%d..\n", from, to, i)
+				err = state.performMove(from-1, to-1) // eek fixup indexen
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
