@@ -31,17 +31,17 @@ func (s State) String() string {
 	return response
 }
 
-func (s State) performMove(from int, to int) error {
-	// get last item
-	itm := s.crates[from][len(s.crates[from])-1]
+func (s State) performMove(nrCrates int, from int, to int) error {
+	// get last N items
+	itm := s.crates[from][len(s.crates[from])-nrCrates:]
 	// drop last item
-	s.crates[from] = s.crates[from][0 : len(s.crates[from])-1]
+	s.crates[from] = s.crates[from][0 : len(s.crates[from])-nrCrates]
 	// add item to target pile
-	s.crates[to] = append(s.crates[to], itm)
+	s.crates[to] = append(s.crates[to], itm...)
 	return nil
 }
 
-func (s State) firstPuzzle() string {
+func (s State) topmostCrateNames() string {
 	ret := ""
 	for _, pile := range s.crates {
 		if len(pile) > 0 {
@@ -79,7 +79,7 @@ func run() (err error) {
 		if move := moves.FindStringSubmatch(t); len(move) > 0 {
 			// now we're reading moves
 			fmt.Printf("%v\n", move)
-			iterations, err := strconv.Atoi(move[1])
+			nrCrates, err := strconv.Atoi(move[1])
 			if err != nil {
 				return err
 			}
@@ -91,19 +91,16 @@ func run() (err error) {
 			if err != nil {
 				return err
 			}
-			for i := 0; i < iterations; i++ {
-				fmt.Printf("moving from %d to %d #%d..\n", from, to, i)
-				err = state.performMove(from-1, to-1) // eek fixup indexen
-				if err != nil {
-					return err
-				}
+			err = state.performMove(nrCrates, from-1, to-1) // eek fixup indexen
+			if err != nil {
+				return err
 			}
 		}
 	}
 
 	fmt.Printf("%v\n", state)
 
-	fmt.Println(state.firstPuzzle())
+	fmt.Println(state.topmostCrateNames())
 
 	return nil
 }
