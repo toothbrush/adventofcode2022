@@ -41,6 +41,16 @@ func (s State) performMove(from int, to int) error {
 	return nil
 }
 
+func (s State) firstPuzzle() string {
+	ret := ""
+	for _, pile := range s.crates {
+		if len(pile) > 0 {
+			ret += string(pile[len(pile)-1])
+		}
+	}
+	return ret
+}
+
 func run() (err error) {
 	s := bufio.NewScanner(os.Stdin)
 	var t string
@@ -92,5 +102,8 @@ func run() (err error) {
 	}
 
 	fmt.Printf("%v\n", state)
+
+	fmt.Println(state.firstPuzzle())
+
 	return nil
 }
