@@ -46,9 +46,11 @@ func run() (err error) {
 			// we're still reading crates
 			fmt.Printf("%s\n", t)
 			for pos := 0; pos < len(state.crates); pos++ {
-				itemAt := t[4*pos+1]
-				if regexp.MustCompile("[A-Z]").MatchString(string(itemAt)) {
-					state.crates[pos] = append([]rune{rune(itemAt)}, state.crates[pos]...)
+				if len(t) > 4*pos+1 {
+					itemAt := t[4*pos+1]
+					if regexp.MustCompile("[A-Z]").MatchString(string(itemAt)) {
+						state.crates[pos] = append([]rune{rune(itemAt)}, state.crates[pos]...)
+					}
 				}
 			}
 		}
