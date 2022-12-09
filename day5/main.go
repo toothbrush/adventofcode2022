@@ -31,6 +31,16 @@ func (s State) String() string {
 	return response
 }
 
+func (s State) performMove(from int, to int) error {
+	// get last item
+	itm := s.crates[from][len(s.crates[from])-1]
+	// drop last item
+	s.crates[from] = s.crates[from][0 : len(s.crates[from])-1]
+	// add item to target pile
+	s.crates[to] = append(s.crates[to], itm)
+	return nil
+}
+
 func run() (err error) {
 	s := bufio.NewScanner(os.Stdin)
 	var t string
