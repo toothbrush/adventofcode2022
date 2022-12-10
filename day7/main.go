@@ -199,9 +199,7 @@ func (i *Inode) updateDirTotals() int {
 		// i'm a dir!
 		total_size := 0
 		for _, kid := range i.children {
-			var sub_size int
-			sub_size = kid.updateDirTotals()
-			total_size += sub_size
+			total_size += kid.updateDirTotals()
 		}
 		i.total_size = total_size
 		fmt.Printf("I'm a dir (name=%s, size=%d)\n", i.name, i.total_size)
