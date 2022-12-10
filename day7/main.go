@@ -24,7 +24,7 @@ type Command struct {
 
 type Inode struct {
 	name     string
-	size     uint32 // let's identify directories as size == 0 and children > 0.
+	size     int // let's identify directories as size == 0 and children > 0.
 	children map[string]Inode
 }
 
@@ -92,7 +92,7 @@ func NewDirectory(name string) Inode {
 	return Inode{name: name, size: 0, children: kids}
 }
 
-func NewFile(name string, size uint32) Inode {
+func NewFile(name string, size int) Inode {
 	kids := make(map[string]Inode)
 	return Inode{name: name, size: size, children: kids}
 }
@@ -138,11 +138,10 @@ func (fs *FSState) ls(output []string) (err error) {
 		if split[0] == "dir" {
 			new_inode = NewDirectory(split[1])
 		} else {
-			atoi, err := strconv.Atoi(split[0])
+			sz, err := strconv.Atoi(split[0])
 			if err != nil {
 				return err
 			}
-			sz := uint32(atoi)
 			new_inode = NewFile(split[1], sz)
 		}
 		err = fs.addInode(new_inode)
