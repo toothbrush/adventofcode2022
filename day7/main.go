@@ -26,7 +26,7 @@ type Inode struct {
 	name       string
 	size       int // let's identify directories as size == 0 and children > 0.
 	total_size int
-	children   map[string]Inode
+	children   map[string]*Inode
 }
 
 type FSState struct {
@@ -36,7 +36,7 @@ type FSState struct {
 
 func (i Inode) sizeOrDir() string {
 	if i.size == 0 {
-		return "dir"
+		return fmt.Sprintf("dir total=%d", i.total_size)
 	} else {
 		return fmt.Sprintf("file=%d", i.size)
 	}
@@ -54,7 +54,7 @@ func PrintInode(depth int, inode Inode) string {
 	sort.Strings(sorted_keys)
 
 	for _, k := range sorted_keys {
-		s += PrintInode(depth+1, inode.children[k])
+		s += PrintInode(depth+1, *inode.children[k])
 	}
 	return s
 }
@@ -89,12 +89,12 @@ func NewFSState() FSState {
 }
 
 func NewDirectory(name string) Inode {
-	kids := make(map[string]Inode)
+	kids := make(map[string]*Inode)
 	return Inode{name: name, size: 0, children: kids}
 }
 
 func NewFile(name string, size int) Inode {
-	kids := make(map[string]Inode)
+	kids := make(map[string]*Inode)
 	return Inode{name: name, size: size, children: kids}
 }
 
@@ -108,14 +108,14 @@ func addChildTo(inode Inode, cwd []string, child Inode) (Inode, error) {
 		if _, ok := inode.children[child.name]; ok {
 			return Inode{}, fmt.Errorf("eek! not gonna overwrite existing file: %s", child.name)
 		}
-		inode.children[child.name] = child
+		inode.children[child.name] = &child
 	} else {
 		// betta recurse
-		new, err := addChildTo(inode.children[cwd[0]], cwd[1:], child)
+		new, err := addChildTo(*inode.children[cwd[0]], cwd[1:], child)
 		if err != nil {
 			return Inode{}, err
 		}
-		inode.children[new.name] = new
+		inode.children[new.name] = &new
 	}
 
 	return inode, nil
