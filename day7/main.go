@@ -207,6 +207,19 @@ func (i *Inode) updateDirTotals() int {
 	}
 }
 
+func (i *Inode) allDirSizes() []int {
+	if len(i.children) == 0 {
+		return []int{}
+	} else {
+		// i'm a dir
+		var totals []int
+		for _, kid := range i.children {
+			totals = append(totals, kid.allDirSizes()...)
+		}
+		return append(totals, i.total_size)
+	}
+}
+
 func run() (err error) {
 	s := bufio.NewScanner(os.Stdin)
 	var t string
@@ -240,6 +253,8 @@ func run() (err error) {
 
 	root_size := fs.root.updateDirTotals()
 	fmt.Printf("/ size = %d\n", root_size)
+	fmt.Printf("/ size = %v\n", fs)
+	fmt.Printf("totals = %v\n", fs.root.allDirSizes())
 
 	return nil
 }
