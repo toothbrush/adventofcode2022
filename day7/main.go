@@ -114,7 +114,12 @@ func addChildTo(inode Inode, cwd []string, child Inode) (Inode, error) {
 		}
 		// very suspect are we detaching things??
 		inode := c[cwd[0]]
-		return addChildTo(inode, cwd[1:], child)
+		new, err := addChildTo(inode, cwd[1:], child)
+		if err != nil {
+			return Inode{}, err
+		}
+		c[cwd[0]] = new
+		return inode, nil
 	}
 }
 
