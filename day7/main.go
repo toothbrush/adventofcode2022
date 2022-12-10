@@ -189,7 +189,6 @@ func (fs *FSState) executeCommands(cmds []Command) error {
 			return err
 		}
 	}
-	fmt.Printf("\n%s\n", fs)
 	return nil
 }
 
@@ -222,6 +221,7 @@ func run() (err error) {
 
 	fs := NewFSState()
 	fs.executeCommands(commands)
+	fmt.Printf("\n%s\n", fs)
 
 	return nil
 }
