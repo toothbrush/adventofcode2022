@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -43,11 +44,22 @@ func (i Inode) sizeOrDir() string {
 func PrintInode(depth int, inode Inode) string {
 	s := ""
 	indent := strings.Repeat("  ", depth)
-	s += fmt.Sprintf("%s- %s (%s)\n", indent, inode.name, inode.sizeOrDir())
-	for _, v := range inode.children {
-		s += PrintInode(depth+1, v)
+	s += fmt.Sprintf("%s- %s\n", indent, inode)
+
+	sorted_keys := make([]string, 0, len(inode.children))
+	for k := range inode.children {
+		sorted_keys = append(sorted_keys, k)
+	}
+	sort.Strings(sorted_keys)
+
+	for _, k := range sorted_keys {
+		s += PrintInode(depth+1, inode.children[k])
 	}
 	return s
+}
+
+func (inode Inode) String() string {
+	return fmt.Sprintf("%s (%s)", inode.name, inode.sizeOrDir())
 }
 
 func (fs FSState) String() string {
