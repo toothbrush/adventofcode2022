@@ -120,16 +120,18 @@ func (fs *FSState) ls(output []string) (err error) {
 	// figure out what to do with FSState based on ls output
 	for _, lsLine := range output {
 		split := strings.Split(lsLine, " ")
+		var new_inode Inode
 		if split[0] == "dir" {
-			err = fs.addInode(NewDirectory(split[1]))
+			new_inode = NewDirectory(split[1])
 		} else {
 			atoi, err := strconv.Atoi(split[0])
 			if err != nil {
 				return err
 			}
 			sz := uint32(atoi)
-			err = fs.addInode(NewFile(split[1], sz))
+			new_inode = NewFile(split[1], sz)
 		}
+		err = fs.addInode(new_inode)
 	}
 	return err
 }
