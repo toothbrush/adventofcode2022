@@ -220,6 +220,16 @@ func (i *Inode) allDirSizes() []int {
 	}
 }
 
+func puzzle1(sizes []int) int {
+	total := 0
+	for _, v := range sizes {
+		if v <= 100_000 {
+			total += v
+		}
+	}
+	return total
+}
+
 func run() (err error) {
 	s := bufio.NewScanner(os.Stdin)
 	var t string
@@ -253,8 +263,10 @@ func run() (err error) {
 
 	root_size := fs.root.updateDirTotals()
 	fmt.Printf("/ size = %d\n", root_size)
-	fmt.Printf("/ size = %v\n", fs)
-	fmt.Printf("totals = %v\n", fs.root.allDirSizes())
+	fmt.Printf("/ size = %s\n", fs)
+	totals := fs.root.allDirSizes()
+	fmt.Printf("totals = %v\n", totals)
+	fmt.Printf("puzzle 1 = %d\n", puzzle1(totals))
 
 	return nil
 }
