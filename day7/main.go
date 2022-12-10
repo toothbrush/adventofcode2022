@@ -122,7 +122,7 @@ func addChildTo(inode Inode, cwd []string, child Inode) (Inode, error) {
 }
 
 func (fs *FSState) addInode(inode Inode) error {
-	fmt.Printf("Adding '%v' to %s\n", inode, pwd(fs.cwd))
+	fmt.Printf("Adding '%s' to %s\n", inode, pwd(fs.cwd))
 	newRoot, err := addChildTo(fs.root, fs.cwd, inode)
 	if err != nil {
 		return err
