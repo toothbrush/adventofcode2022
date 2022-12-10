@@ -32,6 +32,28 @@ type FSState struct {
 	root Inode    // filesystem contents. named inodes.
 }
 
+func (i Inode) sizeOrDir() string {
+	if i.size == 0 {
+		return "dir"
+	} else {
+		return fmt.Sprintf("file=%d", i.size)
+	}
+}
+
+func PrintInode(depth int, inode Inode) string {
+	s := ""
+	indent := strings.Repeat("  ", depth)
+	s += fmt.Sprintf("%s- %s (%s)\n", indent, inode.name, inode.sizeOrDir())
+	for _, v := range inode.children {
+		s += PrintInode(depth+1, v)
+	}
+	return s
+}
+
+func (fs FSState) String() string {
+	return PrintInode(0, fs.root)
+}
+
 func NewCommand(cmdLine string) (Command, error) {
 	split := strings.Split(cmdLine, " ")
 	if split[0] != "$" {
@@ -49,7 +71,7 @@ func NewCommand(cmdLine string) (Command, error) {
 func NewFSState() FSState {
 	fs := FSState{}
 	fs.cwd = []string{}
-	fs.root = NewDirectory("_root_")
+	fs.root = NewDirectory("/")
 	return fs
 }
 
@@ -142,7 +164,7 @@ func (fs *FSState) executeCommand(cmd Command) (err error) {
 		err = fmt.Errorf("unknown executable `%s`!", cmd.cmd)
 	}
 	fmt.Printf("cwd: %s\n", pwd(fs.cwd))
-	fmt.Printf("fs:  %v\n", fs)
+	fmt.Printf("%s\n", fs)
 	return err
 }
 
