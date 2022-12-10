@@ -23,9 +23,10 @@ type Command struct {
 }
 
 type Inode struct {
-	name     string
-	size     int // let's identify directories as size == 0 and children > 0.
-	children map[string]Inode
+	name       string
+	size       int // let's identify directories as size == 0 and children > 0.
+	total_size int
+	children   map[string]Inode
 }
 
 type FSState struct {
@@ -191,16 +192,19 @@ func (fs *FSState) executeCommands(cmds []Command) error {
 	return nil
 }
 
-func (i Inode) totalSizes() int {
+func (i *Inode) updateDirTotals() int {
 	if len(i.children) == 0 {
 		return i.size
 	} else {
 		// i'm a dir!
 		total_size := 0
 		for _, kid := range i.children {
-			total_size += kid.totalSizes()
+			var sub_size int
+			sub_size = kid.updateDirTotals()
+			total_size += sub_size
 		}
-		fmt.Printf("I'm a dir (name=%s, size=%d)\n", i.name, total_size)
+		i.total_size = total_size
+		fmt.Printf("I'm a dir (name=%s, size=%d)\n", i.name, i.total_size)
 		return total_size
 	}
 }
@@ -236,7 +240,7 @@ func run() (err error) {
 	fs.executeCommands(commands)
 	fmt.Printf("\n%s\n", fs)
 
-	root_size := fs.root.totalSizes()
+	root_size := fs.root.updateDirTotals()
 	fmt.Printf("/ size = %d\n", root_size)
 
 	return nil
