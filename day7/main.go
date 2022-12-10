@@ -250,21 +250,16 @@ func puzzle2(minimum_size int, sizes []int) int {
 	return smallest_that_is_larger_than_minimum_size
 }
 
-func run() (err error) {
-	s := bufio.NewScanner(os.Stdin)
-	var t string
+func parseShellSession(transcript_lines []string) ([]Command, error) {
+	commands := make([]Command, 0)
 
-	var commands []Command
-	commands = make([]Command, 0)
-
-	for s.Scan() {
-		t = s.Text()
+	for _, t := range transcript_lines {
 		if strings.HasPrefix(t, "$") {
 			// oh this is a command being executed
 			// let's make a new slot for it
 			command, err := NewCommand(t)
 			if err != nil {
-				return err
+				return []Command{}, err
 			}
 			commands = append(commands, command)
 		} else {
@@ -275,6 +270,22 @@ func run() (err error) {
 				last.output = append(last.output, t)
 			}
 		}
+	}
+	return commands, nil
+}
+
+func run() (err error) {
+	s := bufio.NewScanner(os.Stdin)
+	var t string
+	input := []string{}
+
+	for s.Scan() {
+		t = s.Text()
+		input = append(input, t)
+	}
+	commands, err := parseShellSession(input)
+	if err != nil {
+		return err
 	}
 
 	fs := NewFSState()
