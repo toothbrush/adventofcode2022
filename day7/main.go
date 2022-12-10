@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"sort"
 	"strconv"
@@ -30,8 +31,9 @@ type Inode struct {
 }
 
 type FSState struct {
-	cwd  []string // our current working directory,
-	root Inode    // filesystem contents. named inodes.
+	cwd       []string // our current working directory,
+	root      Inode    // filesystem contents. named inodes.
+	disk_size int
 }
 
 func (i Inode) sizeOrDir() string {
@@ -85,6 +87,7 @@ func NewFSState() FSState {
 	fs := FSState{}
 	fs.cwd = []string{}
 	fs.root = NewDirectory("/")
+	fs.disk_size = 70_000_000
 	return fs
 }
 
@@ -230,6 +233,23 @@ func puzzle1(sizes []int) int {
 	return total
 }
 
+// find the smallest size that is bigger than minimum_size
+// returns -1 on error
+func puzzle2(minimum_size int, sizes []int) int {
+	smallest_that_is_larger_than_minimum_size := math.MaxInt
+	for _, v := range sizes {
+		if v >= minimum_size && v < smallest_that_is_larger_than_minimum_size {
+			smallest_that_is_larger_than_minimum_size = v
+		}
+	}
+
+	if smallest_that_is_larger_than_minimum_size == math.MaxInt {
+		return -1
+	}
+
+	return smallest_that_is_larger_than_minimum_size
+}
+
 func run() (err error) {
 	s := bufio.NewScanner(os.Stdin)
 	var t string
@@ -267,6 +287,12 @@ func run() (err error) {
 	totals := fs.root.allDirSizes()
 	fmt.Printf("totals = %v\n", totals)
 	fmt.Printf("puzzle 1 = %d\n", puzzle1(totals))
+
+	needed_for_update := 30_000_000
+	free_space := fs.disk_size - fs.root.total_size
+	need_to_free := needed_for_update - free_space
+	fmt.Printf("Need to free at least: %d\n", need_to_free)
+	fmt.Printf("we should delete directory with size: %d\n", puzzle2(need_to_free, totals))
 
 	return nil
 }
