@@ -191,6 +191,20 @@ func (fs *FSState) executeCommands(cmds []Command) error {
 	return nil
 }
 
+func (i Inode) totalSizes() int {
+	if len(i.children) == 0 {
+		return i.size
+	} else {
+		// i'm a dir!
+		total_size := 0
+		for _, kid := range i.children {
+			total_size += kid.totalSizes()
+		}
+		fmt.Printf("I'm a dir (name=%s, size=%d)\n", i.name, total_size)
+		return total_size
+	}
+}
+
 func run() (err error) {
 	s := bufio.NewScanner(os.Stdin)
 	var t string
@@ -221,6 +235,9 @@ func run() (err error) {
 	fs := NewFSState()
 	fs.executeCommands(commands)
 	fmt.Printf("\n%s\n", fs)
+
+	root_size := fs.root.totalSizes()
+	fmt.Printf("/ size = %d\n", root_size)
 
 	return nil
 }
