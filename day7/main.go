@@ -17,7 +17,7 @@ func main() {
 	}
 }
 
-type Command struct {
+type CommandOutput struct {
 	cmd    string
 	args   []string
 	output []string
@@ -69,12 +69,12 @@ func (fs FSState) String() string {
 	return PrintInode(0, fs.root)
 }
 
-func NewCommand(cmdLine string) (Command, error) {
+func NewCommand(cmdLine string) (CommandOutput, error) {
 	split := strings.Split(cmdLine, " ")
 	if split[0] != "$" {
-		return Command{}, fmt.Errorf("oh scheisse command doesn't start with $!")
+		return CommandOutput{}, fmt.Errorf("oh scheisse command doesn't start with $!")
 	}
-	command := Command{}
+	command := CommandOutput{}
 	command.cmd = split[1]
 	for _, arg := range split[2:] {
 		command.args = append(command.args, arg)
@@ -172,7 +172,7 @@ func (fs *FSState) cd(dir string) error {
 	return nil
 }
 
-func (fs *FSState) executeCommand(cmd Command) (err error) {
+func (fs *FSState) executeCommand(cmd CommandOutput) (err error) {
 	fmt.Printf("Executing `%s %s`\n", cmd.cmd, cmd.args)
 	switch cmd.cmd {
 	case "cd":
@@ -185,7 +185,7 @@ func (fs *FSState) executeCommand(cmd Command) (err error) {
 	return err
 }
 
-func (fs *FSState) executeCommands(cmds []Command) error {
+func (fs *FSState) executeCommands(cmds []CommandOutput) error {
 	for _, cmd := range cmds {
 		err := fs.executeCommand(cmd)
 		if err != nil {
@@ -250,8 +250,8 @@ func puzzle2(minimum_size int, sizes []int) int {
 	return smallest_that_is_larger_than_minimum_size
 }
 
-func parseShellSession(transcript_lines []string) ([]Command, error) {
-	commands := make([]Command, 0)
+func parseShellSession(transcript_lines []string) ([]CommandOutput, error) {
+	commands := make([]CommandOutput, 0)
 
 	for _, t := range transcript_lines {
 		if strings.HasPrefix(t, "$") {
@@ -259,7 +259,7 @@ func parseShellSession(transcript_lines []string) ([]Command, error) {
 			// let's make a new slot for it
 			command, err := NewCommand(t)
 			if err != nil {
-				return []Command{}, err
+				return []CommandOutput{}, err
 			}
 			commands = append(commands, command)
 		} else {
@@ -290,7 +290,7 @@ func run() (err error) {
 
 	fs := NewFSState()
 	fs.executeCommands(commands)
-	fmt.Printf("\n%s\n", fs)
+	fmt.Printf("Directory structure:\n%s\n", fs)
 
 	root_size := fs.root.updateDirTotals()
 	fmt.Printf("/ size = %d\n", root_size)
