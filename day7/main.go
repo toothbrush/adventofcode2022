@@ -76,11 +76,13 @@ func NewFSState() FSState {
 }
 
 func NewDirectory(name string) Inode {
-	return Inode{name: name, size: 0, children: make(map[string]Inode)}
+	kids := make(map[string]Inode)
+	return Inode{name: name, size: 0, children: kids}
 }
 
 func NewFile(name string, size uint32) Inode {
-	return Inode{name: name, size: size, children: make(map[string]Inode)}
+	kids := make(map[string]Inode)
+	return Inode{name: name, size: size, children: kids}
 }
 
 func pwd(cwd []string) string {
@@ -90,18 +92,28 @@ func pwd(cwd []string) string {
 func addChildTo(inode Inode, cwd []string, child Inode) (Inode, error) {
 	if len(cwd) == 0 {
 		// we have recursed sufficiently, add it here
-		if inode.children == nil {
+		c := inode.children
+		if c == nil {
 			fmt.Printf("r u nil?? %v\n", inode)
-			inode.children = make(map[string]Inode)
+			c = make(map[string]Inode)
+			inode.children = c
 		} else {
-
 			fmt.Printf("exists??  %v\n", inode)
 		}
-		inode.children[child.name] = child
+		c[child.name] = child
 		fmt.Printf("after adding = %v\n", inode)
 		return inode, nil
 	} else {
-		inode := inode.children[cwd[0]]
+		c := inode.children
+		if c == nil {
+			fmt.Printf("r u nil?? %v\n", inode)
+			c = make(map[string]Inode)
+			inode.children = c
+		} else {
+			fmt.Printf("exists??  %v\n", inode)
+		}
+		// very suspect are we detaching things??
+		inode := c[cwd[0]]
 		return addChildTo(inode, cwd[1:], child)
 	}
 }
