@@ -102,37 +102,22 @@ func pwd(cwd []string) string {
 }
 
 func addChildTo(inode Inode, cwd []string, child Inode) (Inode, error) {
+	// if we're at the depth where len(cwd) == 0, just add the key.
 	if len(cwd) == 0 {
-		// we have recursed sufficiently, add it here
-		c := inode.children
-		if c == nil {
-			fmt.Printf("r u nil?? %v\n", inode)
-			c = make(map[string]Inode)
-			inode.children = c
-		} else {
-			fmt.Printf("exists??  %v\n", inode)
+		if _, ok := inode.children[child.name]; ok {
+			return Inode{}, fmt.Errorf("eek! not gonna overwrite existing file: %s", child.name)
 		}
-		c[child.name] = child
-		fmt.Printf("after adding = %v\n", inode)
-		return inode, nil
+		inode.children[child.name] = child
 	} else {
-		c := inode.children
-		if c == nil {
-			fmt.Printf("r u nil?? %v\n", inode)
-			c = make(map[string]Inode)
-			inode.children = c
-		} else {
-			fmt.Printf("exists??  %v\n", inode)
-		}
-		// very suspect are we detaching things??
-		inode := c[cwd[0]]
-		new, err := addChildTo(inode, cwd[1:], child)
+		// betta recurse
+		new, err := addChildTo(inode.children[cwd[0]], cwd[1:], child)
 		if err != nil {
 			return Inode{}, err
 		}
-		c[cwd[0]] = new
-		return inode, nil
+		inode.children[new.name] = new
 	}
+
+	return inode, nil
 }
 
 func (fs *FSState) addInode(inode Inode) error {
@@ -194,8 +179,6 @@ func (fs *FSState) executeCommand(cmd Command) (err error) {
 	default:
 		err = fmt.Errorf("unknown executable `%s`!", cmd.cmd)
 	}
-	fmt.Printf("cwd: %s\n", pwd(fs.cwd))
-	fmt.Printf("%s\n", fs)
 	return err
 }
 
@@ -206,6 +189,7 @@ func (fs *FSState) executeCommands(cmds []Command) error {
 			return err
 		}
 	}
+	fmt.Printf("\n%s\n", fs)
 	return nil
 }
 
@@ -239,6 +223,5 @@ func run() (err error) {
 	fs := NewFSState()
 	fs.executeCommands(commands)
 
-	fmt.Printf("%v\n", commands)
 	return nil
 }
