@@ -75,6 +75,18 @@ func (g *Grid) populateGrid(lines []string) error {
 	return nil
 }
 
+func (g Grid) countVisible() int {
+	total := 0
+	for i := range g.treez {
+		for j := range g.treez[i] {
+			if g.treez[i][j].is_visible {
+				total += 1
+			}
+		}
+	}
+	return total
+}
+
 func run() (err error) {
 	fmt.Printf("welcome to treez\n")
 
@@ -93,6 +105,7 @@ func run() (err error) {
 	g.populateGrid(lines)
 
 	fmt.Printf("%v\n", g)
+	fmt.Printf("visible: %d\n", g.countVisible())
 
 	return nil
 }
