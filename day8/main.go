@@ -49,6 +49,19 @@ func (g Grid) String() string {
 	return s
 }
 
+func (g Grid) ScenicString() string {
+
+	s := "\n"
+	for i := range g.treez {
+		for j := range g.treez[i] {
+			s += fmt.Sprintf("% 3d ", g.treez[i][j].scenic_score)
+		}
+		s += "\n"
+	}
+	s += "\n"
+	return s
+}
+
 func NewGrid(size int) Grid {
 	g := Grid{}
 	g.size = size
@@ -169,6 +182,7 @@ func run() (err error) {
 
 	fmt.Printf("%v\n", g)
 	fmt.Printf("visible: %d\n", g.countVisible())
+	fmt.Printf("%s\n", g.ScenicString())
 
 	return nil
 }
