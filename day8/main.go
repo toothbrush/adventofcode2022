@@ -75,6 +75,21 @@ func (g *Grid) populateGrid(lines []string) error {
 	return nil
 }
 
+type Direction struct {
+	dx         int
+	dy         int
+	is_visible bool
+}
+type Directions []Direction
+
+func (directions Directions) anyVisible() bool {
+	res := false
+	for _, d := range directions {
+		res = res || d.is_visible
+	}
+	return res
+}
+
 func (g Grid) countVisible() int {
 	total := 0
 	for i := range g.treez {
