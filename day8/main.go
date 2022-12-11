@@ -24,6 +24,30 @@ type Grid struct {
 	treez [][]Tree
 }
 
+func (g Grid) String() string {
+
+	s := "\n"
+	for i := range g.treez {
+		for j := range g.treez[i] {
+			s += fmt.Sprintf("%d", g.treez[i][j].height)
+		}
+		s += "\n"
+	}
+	s += "\n"
+	for i := range g.treez {
+		for j := range g.treez[i] {
+			if g.treez[i][j].is_visible {
+				s += "^"
+			} else {
+				s += "."
+			}
+		}
+		s += "\n"
+	}
+	s += "\n"
+	return s
+}
+
 func NewGrid(size int) Grid {
 	g := Grid{}
 	g.size = size
