@@ -15,8 +15,9 @@ func main() {
 }
 
 type Tree struct {
-	height     int
-	is_visible bool
+	height       int
+	is_visible   bool
+	scenic_score int
 }
 
 type Grid struct {
@@ -76,26 +77,27 @@ func (g *Grid) populateGrid(lines []string) error {
 }
 
 type Direction struct {
-	dx         int
-	dy         int
-	is_visible bool
+	dx             int
+	dy             int
+	occlusion_free bool
+	scenic_score   int
 }
 type Directions []Direction
 
 func (directions Directions) anyVisible() bool {
 	res := false
 	for _, d := range directions {
-		res = res || d.is_visible
+		res = res || d.occlusion_free
 	}
 	return res
 }
 
 func NewDirections() Directions {
 	directions := Directions{
-		{dx: 0, dy: 1, is_visible: true},
-		{dx: 0, dy: -1, is_visible: true},
-		{dx: 1, dy: 0, is_visible: true},
-		{dx: -1, dy: 0, is_visible: true},
+		{dx: 0, dy: 1, occlusion_free: true, scenic_score: 0},
+		{dx: 0, dy: -1, occlusion_free: true, scenic_score: 0},
+		{dx: 1, dy: 0, occlusion_free: true, scenic_score: 0},
+		{dx: -1, dy: 0, occlusion_free: true, scenic_score: 0},
 	}
 	return directions
 }
@@ -103,8 +105,8 @@ func NewDirections() Directions {
 func (g *Grid) determineVisibility() {
 	for i := range g.treez {
 		for j := range g.treez[i] {
-			// from the pov of tree i,j walk till we're at the horizon.
-			// set up a bunch of directions, start by assuming the tree is visible in that direction:
+			// from the pov of tree i,j walk till we're at a tree >= our height.
+			// set up a bunch of directions:
 			directions := NewDirections()
 			// look for occlusions:
 			for d_i, dir := range directions {
@@ -114,7 +116,7 @@ func (g *Grid) determineVisibility() {
 						if g.treez[x][j].height >= g.treez[i][j].height {
 							// occluded from this direction!
 							if x != i {
-								directions[d_i].is_visible = false
+								directions[d_i].occlusion_free = false
 							}
 						}
 					}
@@ -124,7 +126,7 @@ func (g *Grid) determineVisibility() {
 							// occluded from this direction!
 							// small fixup - don't compare with myself
 							if y != j {
-								directions[d_i].is_visible = false
+								directions[d_i].occlusion_free = false
 							}
 						}
 					}
