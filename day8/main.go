@@ -59,6 +59,10 @@ func NewGrid(size int) Grid {
 }
 
 func (g *Grid) populateGrid(lines []string) error {
+	if g.size != len(lines) || g.size != len(lines[0]) {
+		return fmt.Errorf("eish, dimensions aren't square")
+	}
+
 	for i, l := range lines {
 		for j, c := range l {
 			height, err := strconv.Atoi(string(c))
