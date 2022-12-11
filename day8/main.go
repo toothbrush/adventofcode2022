@@ -162,6 +162,18 @@ func (g Grid) countVisible() int {
 	return total
 }
 
+func (g Grid) maxScenic() int {
+	max := 0
+	for i := range g.treez {
+		for j := range g.treez[i] {
+			if g.treez[i][j].scenic_score > max {
+				max = g.treez[i][j].scenic_score
+			}
+		}
+	}
+	return max
+}
+
 func run() (err error) {
 	fmt.Printf("welcome to treez\n")
 
@@ -183,6 +195,7 @@ func run() (err error) {
 	fmt.Printf("%v\n", g)
 	fmt.Printf("visible: %d\n", g.countVisible())
 	fmt.Printf("%s\n", g.ScenicString())
+	fmt.Printf("max scenic score: %d\n", g.maxScenic())
 
 	return nil
 }
