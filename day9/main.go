@@ -21,7 +21,8 @@ type Pos struct {
 }
 
 func NewPos() Pos {
-	return Pos{tail_history: make(map[string]bool)}
+	// remember, the tail visited the start!
+	return Pos{tail_history: map[string]bool{"0,0": true}}
 }
 
 func main() {
