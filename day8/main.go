@@ -115,6 +115,23 @@ func NewDirections() Directions {
 	return directions
 }
 
+func (d Direction) String() string {
+	if d.dx == 0 && d.dy == 1 {
+		return "RIGHT"
+	}
+	if d.dx == 0 && d.dy == -1 {
+		return "LEFT"
+	}
+	if d.dx == 1 && d.dy == 0 {
+		return "DOWN"
+	}
+	if d.dx == -1 && d.dy == 0 {
+		return "UP"
+	}
+
+	return "boom"
+}
+
 func (g *Grid) determineVisibility() {
 	for i := range g.treez {
 		for j := range g.treez[i] {
