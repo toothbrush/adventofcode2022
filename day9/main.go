@@ -55,6 +55,29 @@ func max(nums ...int) int {
 	return max
 }
 
+func abs(num int) int {
+	if num < 0 {
+		return -num
+	} else {
+		return num
+	}
+}
+
+func (p Pos) headTailTouching() bool {
+	// figure out where the tail may be, to be touching the head
+	allowed := make(map[string]bool)
+	for i := -1; i <= 1; i++ {
+		for j := -1; j <= 1; j++ {
+			// eish, poorman's Set
+			allowed[fmt.Sprintf("%d,%d", p.head_x+i, p.head_y+j)] = true
+		}
+	}
+	fmt.Printf("%v\n", allowed)
+
+	// if it's there, yay.
+	return allowed[fmt.Sprintf("%d,%d", p.tail_x, p.tail_y)]
+}
+
 func (p *Pos) performMove(dir string) error {
 	dx, dy, err := offset(dir)
 	if err != nil {
@@ -75,6 +98,9 @@ func PrintBoard(p Pos) {
 	for x := max_coord; x >= 0; x-- {
 		for y := 0; y < max_coord; y++ {
 			here = "."
+			if p.tail_history[fmt.Sprintf("%d,%d", x, y)] {
+				here = "#"
+			}
 			if x == 0 && y == 0 {
 				here = "s"
 			}
