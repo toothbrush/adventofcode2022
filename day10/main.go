@@ -10,9 +10,15 @@ import (
 )
 
 type State struct {
-	X                  int
-	cycle              int
-	interestingSignals []int
+	X      int
+	cycle  int
+	pixels []string
+}
+
+func (s State) isPixelLit() bool {
+	// sprite is at position X, and is 3 pixels wide.  So X, X+1, X+2.
+	// CRT is drawing x-position cycle%40
+	return s.X < (s.cycle%40) && (s.cycle%40) < s.X+3
 }
 
 type Instruction struct {
@@ -20,26 +26,20 @@ type Instruction struct {
 	args []string
 }
 
-func interestingCycle(c int) bool {
-
-	if (c-20)%40 == 0 {
-		return true
+func (s *State) bumpClockAndDraw() {
+	if s.isPixelLit() {
+		fmt.Printf("[cycle % 3d] signal = %d\n", s.cycle, 0)
+		s.pixels = append(s.pixels, "#")
+	} else {
+		s.pixels = append(s.pixels, ".")
 	}
-	return false
-}
-
-func (s *State) bumpClockReturnInterestingSignal() int {
-	signal := 0
-	if interestingCycle(s.cycle) {
-		signal = s.cycle * s.X
-		s.interestingSignals = append(s.interestingSignals, signal)
-		fmt.Printf("[cycle % 3d] signal = %d\n", s.cycle, signal)
+	if s.cycle%40 == 0 {
+		// add a line break after a line of pixels
+		s.pixels = append(s.pixels, "\n")
 	}
 
 	// actually bump the clock as we were asked to:
 	s.cycle++
-
-	return signal
 }
 
 func sum(nums []int) (sum int) {
@@ -52,14 +52,14 @@ func sum(nums []int) (sum int) {
 func (s *State) execute(i Instruction) error {
 	switch i.name {
 	case "noop":
-		s.bumpClockReturnInterestingSignal()
+		s.bumpClockAndDraw()
 	case "addx":
 		arg1, err := strconv.Atoi(i.args[0])
 		if err != nil {
 			return err
 		}
-		s.bumpClockReturnInterestingSignal()
-		s.bumpClockReturnInterestingSignal()
+		s.bumpClockAndDraw()
+		s.bumpClockAndDraw()
 		s.X += arg1
 	}
 	fmt.Printf("Executing `%s`. State = %v\n", i.name, s)
@@ -70,7 +70,7 @@ func NewState() State {
 	s := State{}
 	s.X = 1
 	s.cycle = 1
-	s.interestingSignals = []int{}
+	s.pixels = make([]string, 0)
 	return s
 }
 
@@ -92,9 +92,7 @@ func run() (err error) {
 			}
 		}
 	}
-	fmt.Printf("total of %d interesting signals = %d\n",
-		len(state.interestingSignals),
-		sum(state.interestingSignals))
+	fmt.Printf("%s\n", strings.Join(state.pixels, ""))
 	return nil
 }
 
