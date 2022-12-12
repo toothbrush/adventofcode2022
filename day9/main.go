@@ -94,18 +94,10 @@ func (p *Pos) bringTailForTheRide() {
 	diffx := p.head_x - p.tail_x
 	diffy := p.head_y - p.tail_y
 
-	if diffx == 0 {
-		// just one directional move
-		p.tail_y += sign(diffy)
-	} else if diffy == 0 {
-		// just one directional move
-		p.tail_x += sign(diffx)
-	} else {
-		// oh scheisse must be a diagonal move
-		// we can get this done by using diffx and diffy, but at most one step in those directions
-		p.tail_x += sign(diffx)
-		p.tail_y += sign(diffy)
-	}
+	// oh scheisse might be a diagonal move. even so, sign() helps us!
+	// we can get this done by using diffx and diffy, but at most one step in those directions
+	p.tail_x += sign(diffx)
+	p.tail_y += sign(diffy)
 }
 
 func (p *Pos) performMove(dir string) error {
