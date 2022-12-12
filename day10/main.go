@@ -15,10 +15,14 @@ type State struct {
 	pixels []string
 }
 
+func isPixelLit(registerX int, pixel int) bool {
+	return registerX-1 <= pixel && pixel < (registerX-1)+3
+}
+
 func (s State) isPixelLit() bool {
 	// sprite is at position X, and is 3 pixels wide.  So X, X+1, X+2.
 	// CRT is drawing x-position cycle%40
-	return s.X < (s.cycle%40) && (s.cycle%40) < s.X+3
+	return isPixelLit(s.X, (s.cycle-1)%40)
 }
 
 type Instruction struct {
@@ -28,7 +32,6 @@ type Instruction struct {
 
 func (s *State) bumpClockAndDraw() {
 	if s.isPixelLit() {
-		fmt.Printf("[cycle % 3d] signal = %d\n", s.cycle, 0)
 		s.pixels = append(s.pixels, "#")
 	} else {
 		s.pixels = append(s.pixels, ".")
@@ -50,6 +53,17 @@ func sum(nums []int) (sum int) {
 }
 
 func (s *State) execute(i Instruction) error {
+	fmt.Printf("\nSprite position: ")
+	for i := 0; i < 40; i++ {
+		// draw pixels of the sprite
+		if isPixelLit(s.X, i) {
+			fmt.Printf("#")
+		} else {
+			fmt.Printf(".")
+		}
+	}
+	fmt.Printf("\n")
+
 	switch i.name {
 	case "noop":
 		s.bumpClockAndDraw()
