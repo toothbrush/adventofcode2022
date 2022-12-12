@@ -79,6 +79,35 @@ func (p Pos) headTailTouching() bool {
 	return allowed[fmt.Sprintf("%d,%d", p.tail_x, p.tail_y)]
 }
 
+// retain the sign but make sure abs(sign(num)) == 1, unless zero.
+func sign(num int) int {
+	if num < 0 {
+		return -1
+	} else if num > 0 {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+func (p *Pos) bringTailForTheRide() {
+	diffx := p.head_x - p.tail_x
+	diffy := p.head_y - p.tail_y
+
+	if diffx == 0 {
+		// just one directional move
+		p.tail_y += sign(diffy)
+	} else if diffy == 0 {
+		// just one directional move
+		p.tail_x += sign(diffx)
+	} else {
+		// oh scheisse must be a diagonal move
+		// we can get this done by using diffx and diffy, but at most one step in those directions
+		p.tail_x += sign(diffx)
+		p.tail_y += sign(diffy)
+	}
+}
+
 func (p *Pos) performMove(dir string) error {
 	dx, dy, err := offset(dir)
 	if err != nil {
@@ -86,6 +115,11 @@ func (p *Pos) performMove(dir string) error {
 	}
 	p.head_x += dx
 	p.head_y += dy
+
+	if !p.headTailTouching() {
+		// scheisse gotta move
+		p.bringTailForTheRide()
+	}
 
 	p.max_dimension = max(p.head_x, p.head_y, p.tail_x, p.tail_y, p.max_dimension)
 	p.tail_history[fmt.Sprintf("%d,%d", p.tail_x, p.tail_y)] = true
@@ -119,6 +153,13 @@ func PrintBoard(p Pos) {
 	fmt.Println(s)
 }
 
+func countVisited(history map[string]bool) (vis int) {
+	for range history {
+		vis++
+	}
+	return vis
+}
+
 func run() (err error) {
 	fmt.Printf("welcome to rope\n")
 
@@ -145,5 +186,6 @@ func run() (err error) {
 	}
 	PrintBoard(state)
 	fmt.Printf("final state: %v\n", state)
+	fmt.Printf("tail visited sites: %d\n", countVisited(state.tail_history))
 	return nil
 }
