@@ -142,22 +142,17 @@ func (g *Grid) determineVisibility() {
 			for d_i, dir := range directions {
 				// figure out if we're walking horizontally or vertically
 				if dir.dy == 0 {
-					for x := i; x >= 0 && x < g.size; x += dir.dx {
+					for x := i + dir.dx; x >= 0 && x < g.size; x += dir.dx {
 						if g.treez[x][j].height >= g.treez[i][j].height {
 							// occluded from this direction!
-							if x != i {
-								directions[d_i].occlusion_free = false
-							}
+							directions[d_i].occlusion_free = false
 						}
 					}
 				} else {
-					for y := j; y >= 0 && y < g.size; y += dir.dy {
+					for y := j + dir.dy; y >= 0 && y < g.size; y += dir.dy {
 						if g.treez[i][y].height >= g.treez[i][j].height {
 							// occluded from this direction!
-							// small fixup - don't compare with myself
-							if y != j {
-								directions[d_i].occlusion_free = false
-							}
+							directions[d_i].occlusion_free = false
 						}
 					}
 				}
@@ -180,11 +175,9 @@ func (g *Grid) determineBucholicIndex() {
 				if dir.dy == 0 { // walking vertically
 					for x := i + dir.dx; x >= 0 && x < g.size; x += dir.dx {
 						if directions[d_i].occlusion_free {
-							if g.treez[x][j].height < g.treez[i][j].height {
-								scenic += 1
-							} else {
+							scenic += 1
+							if g.treez[x][j].height >= g.treez[i][j].height {
 								// stop counting now.
-								scenic += 1
 								directions[d_i].occlusion_free = false
 							}
 						}
@@ -192,11 +185,9 @@ func (g *Grid) determineBucholicIndex() {
 				} else {
 					for y := j + dir.dy; y >= 0 && y < g.size; y += dir.dy {
 						if directions[d_i].occlusion_free {
-							if g.treez[i][y].height < g.treez[i][j].height {
-								scenic += 1
-							} else {
+							scenic += 1
+							if g.treez[i][y].height >= g.treez[i][j].height {
 								// stop counting now.
-								scenic += 1
 								directions[d_i].occlusion_free = false
 							}
 						}
