@@ -167,6 +167,54 @@ func (g *Grid) determineVisibility() {
 	}
 }
 
+func (g *Grid) determineBucholicIndex() {
+	for i := range g.treez {
+		for j := range g.treez[i] {
+			// from the pov of tree i,j walk till we're at the horizon.
+			// set up a bunch of directions, start by assuming the tree is visible in that direction:
+			directions := NewDirections()
+			// look for occlusions:
+			for d_i, dir := range directions {
+				scenic := 0
+				// figure out if we're walking horizontally or vertically
+				if dir.dy == 0 { // walking vertically
+					for x := i + dir.dx; x >= 0 && x < g.size; x += dir.dx {
+						if directions[d_i].occlusion_free {
+							if g.treez[x][j].height < g.treez[i][j].height {
+								scenic += 1
+							} else {
+								// stop counting now.
+								scenic += 1
+								directions[d_i].occlusion_free = false
+							}
+						}
+					}
+				} else {
+					for y := j + dir.dy; y >= 0 && y < g.size; y += dir.dy {
+						if directions[d_i].occlusion_free {
+							if g.treez[i][y].height < g.treez[i][j].height {
+								scenic += 1
+							} else {
+								// stop counting now.
+								scenic += 1
+								directions[d_i].occlusion_free = false
+							}
+						}
+					}
+				}
+				directions[d_i].scenic_score = scenic
+				fmt.Printf("row %d col %d: scenic score %d in direction %s\n", i, j, scenic, dir)
+			}
+			fmt.Printf("%v\n", directions)
+			g.treez[i][j].scenic_score =
+				directions[0].scenic_score *
+					directions[1].scenic_score *
+					directions[2].scenic_score *
+					directions[3].scenic_score
+		}
+	}
+}
+
 func (g Grid) countVisible() int {
 	total := 0
 	for i := range g.treez {
@@ -208,6 +256,7 @@ func run() (err error) {
 	g := NewGrid(len(lines))
 	g.populateGrid(lines)
 	g.determineVisibility()
+	g.determineBucholicIndex()
 
 	fmt.Printf("%v\n", g)
 	fmt.Printf("visible: %d\n", g.countVisible())
