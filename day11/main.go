@@ -15,15 +15,22 @@ type ParseState int
 const (
 	MonkeyIntro ParseState = iota
 	Items
+	Operation
 	Test
 	IfTrue
 	IfFalse
-	MonkeyComplete
 )
 
 type Monkey struct {
 	id    int
 	items []int
+
+	operation string
+
+	test_divisible_by int
+
+	if_true_throw_to  int
+	if_false_throw_to int
 }
 
 func parseMonkeyList(input []string) ([]Monkey, error) {
@@ -47,7 +54,6 @@ func parseMonkeyList(input []string) ([]Monkey, error) {
 			items_r := regexp.MustCompile("Starting items: ([0-9, ]+)")
 			items_string := items_r.FindStringSubmatch(i)[1]
 			items_split := strings.Split(items_string, ",")
-			fmt.Println(items_split)
 			items_list := []int{}
 			for _, item_id_s := range items_split {
 				item_id, err := strconv.Atoi(strings.TrimSpace(item_id_s))
@@ -57,11 +63,37 @@ func parseMonkeyList(input []string) ([]Monkey, error) {
 				items_list = append(items_list, item_id)
 			}
 			m.items = items_list
+			state = Operation
+		case Operation:
+			operation_r := regexp.MustCompile("Operation: new = (.*)$")
+			m.operation = operation_r.FindStringSubmatch(i)[1]
 			state = Test
 		case Test:
+			test_r := regexp.MustCompile("Test: divisible by ([0-9]+)")
+			test_str := test_r.FindStringSubmatch(i)[1]
+			test_divisor, err := strconv.Atoi(strings.TrimSpace(test_str))
+			if err != nil {
+				return []Monkey{}, err
+			}
+			m.test_divisible_by = test_divisor
+			state = IfTrue
 		case IfTrue:
+			true_r := regexp.MustCompile("If true: throw to monkey ([0-9]+)")
+			true_str := true_r.FindStringSubmatch(i)[1]
+			m_id, err := strconv.Atoi(strings.TrimSpace(true_str))
+			if err != nil {
+				return []Monkey{}, err
+			}
+			m.if_true_throw_to = m_id
+			state = IfFalse
 		case IfFalse:
-		case MonkeyComplete:
+			false_r := regexp.MustCompile("If false: throw to monkey ([0-9]+)")
+			false_str := false_r.FindStringSubmatch(i)[1]
+			m_id, err := strconv.Atoi(strings.TrimSpace(false_str))
+			if err != nil {
+				return []Monkey{}, err
+			}
+			m.if_false_throw_to = m_id
 			ms = append(ms, m)
 			state = MonkeyIntro
 		}
