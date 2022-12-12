@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type ParseState int
@@ -21,7 +22,8 @@ const (
 )
 
 type Monkey struct {
-	id int
+	id    int
+	items []int
 }
 
 func parseMonkeyList(input []string) ([]Monkey, error) {
@@ -33,15 +35,29 @@ func parseMonkeyList(input []string) ([]Monkey, error) {
 		switch state {
 		case MonkeyIntro:
 			m = Monkey{}
-			intro := regexp.MustCompile("Monkey ([0-9]+):")
-			id_string := intro.FindStringSubmatch(i)[1]
+			intro_r := regexp.MustCompile("Monkey ([0-9]+):")
+			id_string := intro_r.FindStringSubmatch(i)[1]
 			id, err := strconv.Atoi(id_string)
 			if err != nil {
 				return []Monkey{}, err
 			}
 			m.id = id
-			state = MonkeyComplete
+			state = Items
 		case Items:
+			items_r := regexp.MustCompile("Starting items: ([0-9, ]+)")
+			items_string := items_r.FindStringSubmatch(i)[1]
+			items_split := strings.Split(items_string, ",")
+			fmt.Println(items_split)
+			items_list := []int{}
+			for _, item_id_s := range items_split {
+				item_id, err := strconv.Atoi(strings.TrimSpace(item_id_s))
+				if err != nil {
+					return []Monkey{}, err
+				}
+				items_list = append(items_list, item_id)
+			}
+			m.items = items_list
+			state = Test
 		case Test:
 		case IfTrue:
 		case IfFalse:
