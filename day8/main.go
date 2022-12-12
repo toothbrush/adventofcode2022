@@ -107,10 +107,10 @@ func (directions Directions) anyVisible() bool {
 
 func NewDirections() Directions {
 	directions := Directions{
-		{dx: 0, dy: 1, occlusion_free: true, scenic_score: 0},
-		{dx: 0, dy: -1, occlusion_free: true, scenic_score: 0},
-		{dx: 1, dy: 0, occlusion_free: true, scenic_score: 0},
 		{dx: -1, dy: 0, occlusion_free: true, scenic_score: 0},
+		{dx: 0, dy: -1, occlusion_free: true, scenic_score: 0},
+		{dx: 0, dy: 1, occlusion_free: true, scenic_score: 0},
+		{dx: 1, dy: 0, occlusion_free: true, scenic_score: 0},
 	}
 	return directions
 }
