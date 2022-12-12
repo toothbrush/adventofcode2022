@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
+const KNOT_COUNT = 10 // including head
+
 type Pos struct {
-	head_x int
-	head_y int
-	tail_x int
-	tail_y int
+	knot_x []int
+	knot_y []int
 
 	max_dimension int
 	min_dimension int
@@ -23,7 +23,11 @@ type Pos struct {
 
 func NewPos() Pos {
 	// remember, the tail visited the start!
-	return Pos{tail_history: map[string]bool{"0,0": true}}
+	p := Pos{}
+	p.tail_history = map[string]bool{"0,0": true}
+	p.knot_x = make([]int, KNOT_COUNT)
+	p.knot_y = make([]int, KNOT_COUNT)
+	return p
 }
 
 func main() {
@@ -74,19 +78,18 @@ func abs(num int) int {
 	}
 }
 
-func (p Pos) headTailTouching() bool {
+func (p Pos) knotsTouching(head int) bool {
 	// figure out where the tail may be, to be touching the head
 	allowed := make(map[string]bool)
 	for i := -1; i <= 1; i++ {
 		for j := -1; j <= 1; j++ {
 			// eish, poorman's Set
-			allowed[fmt.Sprintf("%d,%d", p.head_x+i, p.head_y+j)] = true
+			allowed[fmt.Sprintf("%d,%d", p.knot_x[head]+i, p.knot_y[head]+j)] = true
 		}
 	}
-	fmt.Printf("%v\n", allowed)
 
 	// if it's there, yay.
-	return allowed[fmt.Sprintf("%d,%d", p.tail_x, p.tail_y)]
+	return allowed[fmt.Sprintf("%d,%d", p.knot_x[head+1], p.knot_y[head+1])]
 }
 
 // retain the sign but make sure abs(sign(num)) == 1, unless zero.
@@ -100,14 +103,14 @@ func sign(num int) int {
 	}
 }
 
-func (p *Pos) bringTailForTheRide() {
-	diffx := p.head_x - p.tail_x
-	diffy := p.head_y - p.tail_y
+func (p *Pos) bringTailForTheRide(head int) {
+	diffx := p.knot_x[head] - p.knot_x[head+1]
+	diffy := p.knot_y[head] - p.knot_y[head+1]
 
 	// oh scheisse might be a diagonal move. even so, sign() helps us!
 	// we can get this done by using diffx and diffy, but at most one step in those directions
-	p.tail_x += sign(diffx)
-	p.tail_y += sign(diffy)
+	p.knot_x[head+1] += sign(diffx)
+	p.knot_y[head+1] += sign(diffy)
 }
 
 func (p *Pos) performMove(dir string) error {
@@ -115,17 +118,19 @@ func (p *Pos) performMove(dir string) error {
 	if err != nil {
 		return err
 	}
-	p.head_x += dx
-	p.head_y += dy
+	p.knot_x[0] += dx
+	p.knot_y[0] += dy
 
-	if !p.headTailTouching() {
-		// scheisse gotta move
-		p.bringTailForTheRide()
+	for i := 0; i < KNOT_COUNT-1; i++ {
+		if !p.knotsTouching(i) {
+			// scheisse gotta move
+			p.bringTailForTheRide(i)
+		}
 	}
 
-	p.max_dimension = max(p.head_x, p.head_y, p.tail_x, p.tail_y, p.max_dimension)
-	p.min_dimension = min(p.head_x, p.head_y, p.tail_x, p.tail_y, p.max_dimension)
-	p.tail_history[fmt.Sprintf("%d,%d", p.tail_x, p.tail_y)] = true
+	p.max_dimension = max(p.knot_x[0], p.knot_y[0], p.max_dimension)
+	p.min_dimension = min(p.knot_x[0], p.knot_y[0], p.max_dimension)
+	p.tail_history[fmt.Sprintf("%d,%d", p.knot_x[KNOT_COUNT-1], p.knot_y[KNOT_COUNT-1])] = true
 	return nil
 }
 
@@ -143,10 +148,12 @@ func PrintBoard(p Pos) {
 			if x == 0 && y == 0 {
 				here = "s"
 			}
-			if x == p.tail_x && y == p.tail_y {
-				here = "T"
+			for i := KNOT_COUNT - 1; i > 0; i-- {
+				if x == p.knot_x[i] && y == p.knot_y[i] {
+					here = fmt.Sprintf("%d", i)
+				}
 			}
-			if x == p.head_x && y == p.head_y {
+			if x == p.knot_x[0] && y == p.knot_y[0] {
 				here = "H"
 			}
 			s += here
