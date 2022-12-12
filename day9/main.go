@@ -16,6 +16,7 @@ type Pos struct {
 	tail_y int
 
 	max_dimension int
+	min_dimension int
 
 	tail_history map[string]bool
 }
@@ -54,6 +55,15 @@ func max(nums ...int) int {
 		}
 	}
 	return max
+}
+
+func min(nums ...int) (min int) {
+	for _, num := range nums {
+		if min > num {
+			min = num
+		}
+	}
+	return min
 }
 
 func abs(num int) int {
@@ -114,16 +124,18 @@ func (p *Pos) performMove(dir string) error {
 	}
 
 	p.max_dimension = max(p.head_x, p.head_y, p.tail_x, p.tail_y, p.max_dimension)
+	p.min_dimension = min(p.head_x, p.head_y, p.tail_x, p.tail_y, p.max_dimension)
 	p.tail_history[fmt.Sprintf("%d,%d", p.tail_x, p.tail_y)] = true
 	return nil
 }
 
 func PrintBoard(p Pos) {
 	max_coord := p.max_dimension
+	min_coord := p.min_dimension
 	s := ""
 	var here string
-	for x := max_coord; x >= 0; x-- {
-		for y := 0; y < max_coord; y++ {
+	for x := max_coord; x >= min_coord; x-- {
+		for y := min_coord; y < max_coord; y++ {
 			here = "."
 			if p.tail_history[fmt.Sprintf("%d,%d", x, y)] {
 				here = "#"
