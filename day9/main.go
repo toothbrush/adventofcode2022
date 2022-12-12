@@ -63,9 +63,7 @@ func (p *Pos) performMove(dir string) error {
 	p.head_x += dx
 	p.head_y += dy
 
-	if p.max_dimension < max(p.head_x, p.head_y, p.tail_x, p.tail_y) {
-		p.max_dimension = max(p.head_x, p.head_y, p.tail_x, p.tail_y)
-	}
+	p.max_dimension = max(p.head_x, p.head_y, p.tail_x, p.tail_y, p.max_dimension)
 	p.tail_history[fmt.Sprintf("%d,%d", p.tail_x, p.tail_y)] = true
 	return nil
 }
