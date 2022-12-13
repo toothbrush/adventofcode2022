@@ -36,15 +36,21 @@ type Exp struct {
 }
 
 type Monkey struct {
-	id    int
-	items []int
+	id                int
+	items_worry_level []int
 
+	// Operation shows how your worry level changes as that monkey inspects an item. (An operation
+	// like new = old * 5 means that your worry level after the monkey inspected the item is five
+	// times whatever your worry level was before inspection.)
 	operationExpr Exp
 
+	// Test shows how the monkey uses your worry level to decide where to throw an item next.
 	test_divisible_by int
 
 	if_true_throw_to  int
 	if_false_throw_to int
+
+	items_inspected int
 }
 
 func parseExp(input string) (Exp, error) {
@@ -114,7 +120,7 @@ func parseMonkeyList(input []string) ([]Monkey, error) {
 				}
 				items_list = append(items_list, item_id)
 			}
-			m.items = items_list
+			m.items_worry_level = items_list
 			state = Operation
 		case Operation:
 			operation_r := regexp.MustCompile("Operation: new = (.*)$")
