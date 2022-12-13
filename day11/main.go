@@ -164,6 +164,92 @@ func parseMonkeyList(input []string) ([]Monkey, error) {
 	return ms, nil
 }
 
+func (e Exp) String() string {
+	op_s := "*"
+	if e.operation == Add {
+		op_s = "+"
+	}
+	lhs := "old"
+	rhs := "old"
+	if e.lhs > 0 {
+		lhs = fmt.Sprint(e.lhs)
+	}
+	if e.rhs > 0 {
+		rhs = fmt.Sprint(e.rhs)
+	}
+	return fmt.Sprintf("%s %s %s", lhs, op_s, rhs)
+}
+
+func (e Exp) eval(old int) int {
+	lhs := e.lhs
+	rhs := e.rhs
+	if lhs == -1 {
+		lhs = old
+	}
+	if rhs == -1 {
+		rhs = old
+	}
+	switch e.operation {
+	case Mul:
+		return lhs * rhs
+	case Add:
+		return lhs + rhs
+	}
+	panic("cannot")
+}
+
+const RELIEF_DIVISOR = 3
+
+func monkeyTurn(m int) {
+	/// Monkey 0:
+	///   Monkey inspects an item with a worry level of 79.
+	///     Worry level is multiplied by 19 to 1501.
+	///     Monkey gets bored with item. Worry level is divided by 3 to 500.
+	///     Current worry level is not divisible by 23.
+	///     Item with worry level 500 is thrown to monkey 3.
+	fmt.Printf("Monkey %d:\n", m)
+
+	me := &monkeys[m]
+	my_items := me.items_worry_level
+
+	// empty out our inventory - after this turn we won't have items
+	me.items_worry_level = []int{}
+
+	for _, itm := range my_items {
+		old_worry := itm
+		fmt.Printf("  Monkey inspects an item with a worry level of %d.\n", old_worry)
+		me.items_inspected++
+		new_worry := me.operationExpr.eval(old_worry)
+		post_relief := new_worry / RELIEF_DIVISOR
+		fmt.Printf("    Worry level is \"%s\" to %d.\n", me.operationExpr, new_worry)
+		fmt.Printf("    Monkey gets bored with item. Worry level is divided by %d to %d.\n", RELIEF_DIVISOR, post_relief)
+		if post_relief%me.test_divisible_by == 0 {
+			fmt.Printf("    Current worry level is divisible by %d.\n", me.test_divisible_by)
+			fmt.Printf("    Item with worry level %d is thrown to monkey %d.\n", post_relief, me.if_true_throw_to)
+			monkeys[me.if_true_throw_to].items_worry_level = append(monkeys[me.if_true_throw_to].items_worry_level, post_relief)
+		} else {
+			fmt.Printf("    Current worry level is not divisible by %d.\n", me.test_divisible_by)
+			fmt.Printf("    Item with worry level %d is thrown to monkey %d.\n", post_relief, me.if_false_throw_to)
+			monkeys[me.if_false_throw_to].items_worry_level = append(monkeys[me.if_false_throw_to].items_worry_level, post_relief)
+		}
+	}
+}
+
+func performAllRounds() {
+	for round := 1; round <= 20; round++ {
+		for m := range monkeys {
+			monkeyTurn(m)
+		}
+
+		fmt.Printf("\nAfter round %d, the monkeys are holding items with these worry levels:\n", round)
+		for m := range monkeys {
+			fmt.Printf("Monkey %d: %v\n", m, monkeys[m].items_worry_level)
+		}
+	}
+}
+
+var monkeys []Monkey
+
 func run() (err error) {
 	fmt.Printf("welcome to monkeys\n")
 
@@ -178,11 +264,16 @@ func run() (err error) {
 			input = append(input, t)
 		}
 	}
-	monkeys, err := parseMonkeyList(input)
+	monkeys, err = parseMonkeyList(input)
 	if err != nil {
 		return err
 	}
 	fmt.Printf("%v\n", monkeys)
+
+	performAllRounds()
+	for m := range monkeys {
+		fmt.Printf("Monkey %d inspected items %d times.\n", monkeys[m].id, monkeys[m].items_inspected)
+	}
 	return nil
 }
 
