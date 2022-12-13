@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -250,6 +251,16 @@ func performAllRounds() {
 
 var monkeys []Monkey
 
+func hottestMonkeys(monkeys []Monkey) []int {
+	hot := []int{}
+	for m := range monkeys {
+		hot = append(hot, monkeys[m].items_inspected)
+	}
+	// sort by descending order of hotness
+	sort.Sort(sort.Reverse(sort.IntSlice(hot)))
+	return hot
+}
+
 func run() (err error) {
 	fmt.Printf("welcome to monkeys\n")
 
@@ -274,6 +285,12 @@ func run() (err error) {
 	for m := range monkeys {
 		fmt.Printf("Monkey %d inspected items %d times.\n", monkeys[m].id, monkeys[m].items_inspected)
 	}
+
+	hot := hottestMonkeys(monkeys)
+	fmt.Printf("Hottest monkeys: %v\n", hot)
+
+	monkey_business := hot[0] * hot[1]
+	fmt.Printf("Monkey business: %d\n", monkey_business)
 	return nil
 }
 
