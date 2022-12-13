@@ -207,14 +207,6 @@ func (e Exp) eval(old int64) (answer int64, err error) {
 const ROUNDS = 10_000
 
 func monkeyTurn(m int) (err error) {
-	/// Monkey 0:
-	///   Monkey inspects an item with a worry level of 79.
-	///     Worry level is multiplied by 19 to 1501.
-	///     Monkey gets bored with item. Worry level is divided by 3 to 500.
-	///     Current worry level is not divisible by 23.
-	///     Item with worry level 500 is thrown to monkey 3.
-	fmt.Printf("Monkey %d:\n", m)
-
 	me := &monkeys[m]
 	my_items := me.items_worry_level
 
@@ -223,20 +215,14 @@ func monkeyTurn(m int) (err error) {
 
 	for _, itm := range my_items {
 		old_worry := itm
-		fmt.Printf("  Monkey inspects an item with a worry level of %d.\n", old_worry)
 		me.items_inspected++
 		new_worry, err := me.operationExpr.eval(old_worry)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("    Worry level is \"%s\" to %d.\n", me.operationExpr, new_worry)
 		if new_worry%me.test_divisible_by == 0 {
-			fmt.Printf("    Current worry level is divisible by %d.\n", me.test_divisible_by)
-			fmt.Printf("    Item with worry level %d is thrown to monkey %d.\n", new_worry, me.if_true_throw_to)
 			monkeys[me.if_true_throw_to].items_worry_level = append(monkeys[me.if_true_throw_to].items_worry_level, new_worry)
 		} else {
-			fmt.Printf("    Current worry level is not divisible by %d.\n", me.test_divisible_by)
-			fmt.Printf("    Item with worry level %d is thrown to monkey %d.\n", new_worry, me.if_false_throw_to)
 			monkeys[me.if_false_throw_to].items_worry_level = append(monkeys[me.if_false_throw_to].items_worry_level, new_worry)
 		}
 	}
@@ -252,9 +238,11 @@ func performAllRounds() (err error) {
 			}
 		}
 
-		fmt.Printf("\nAfter round %d, the monkeys are holding items with these worry levels:\n", round)
-		for m := range monkeys {
-			fmt.Printf("Monkey %d: %v\n", m, monkeys[m].items_worry_level)
+		if round == 1 || round == 20 || round%1000 == 0 {
+			fmt.Printf("\n== After round %d ==\n", round)
+			for m := range monkeys {
+				fmt.Printf("Monkey %d inspected items %d times.\n", m, monkeys[m].items_inspected)
+			}
 		}
 	}
 	return nil
