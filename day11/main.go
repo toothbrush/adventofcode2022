@@ -32,13 +32,13 @@ const (
 type Exp struct {
 	operation Op
 	// assume that if lhs or rhs is -1, it's "old"
-	lhs int
-	rhs int
+	lhs int64
+	rhs int64
 }
 
 type Monkey struct {
 	id                int
-	items_worry_level []int
+	items_worry_level []int64
 
 	// Operation shows how your worry level changes as that monkey inspects an item. (An operation
 	// like new = old * 5 means that your worry level after the monkey inspected the item is five
@@ -46,12 +46,12 @@ type Monkey struct {
 	operationExpr Exp
 
 	// Test shows how the monkey uses your worry level to decide where to throw an item next.
-	test_divisible_by int
+	test_divisible_by int64
 
 	if_true_throw_to  int
 	if_false_throw_to int
 
-	items_inspected int
+	items_inspected int64
 }
 
 func parseExp(input string) (Exp, error) {
@@ -78,7 +78,7 @@ func parseExp(input string) (Exp, error) {
 		if err != nil {
 			return Exp{}, err
 		}
-		e.lhs = lhs_i
+		e.lhs = int64(lhs_i)
 	}
 	if matches[3] == "old" {
 		e.rhs = -1
@@ -87,7 +87,7 @@ func parseExp(input string) (Exp, error) {
 		if err != nil {
 			return Exp{}, err
 		}
-		e.rhs = rhs_i
+		e.rhs = int64(rhs_i)
 	}
 	return e, nil
 }
@@ -113,13 +113,13 @@ func parseMonkeyList(input []string) ([]Monkey, error) {
 			items_r := regexp.MustCompile("Starting items: ([0-9, ]+)")
 			items_string := items_r.FindStringSubmatch(i)[1]
 			items_split := strings.Split(items_string, ",")
-			items_list := []int{}
+			items_list := []int64{}
 			for _, item_id_s := range items_split {
 				item_id, err := strconv.Atoi(strings.TrimSpace(item_id_s))
 				if err != nil {
 					return []Monkey{}, err
 				}
-				items_list = append(items_list, item_id)
+				items_list = append(items_list, int64(item_id))
 			}
 			m.items_worry_level = items_list
 			state = Operation
@@ -138,7 +138,7 @@ func parseMonkeyList(input []string) ([]Monkey, error) {
 			if err != nil {
 				return []Monkey{}, err
 			}
-			m.test_divisible_by = test_divisor
+			m.test_divisible_by = int64(test_divisor)
 			state = IfTrue
 		case IfTrue:
 			true_r := regexp.MustCompile("If true: throw to monkey ([0-9]+)")
@@ -181,7 +181,7 @@ func (e Exp) String() string {
 	return fmt.Sprintf("%s %s %s", lhs, op_s, rhs)
 }
 
-func (e Exp) eval(old int) int {
+func (e Exp) eval(old int64) (answer int64, err error) {
 	lhs := e.lhs
 	rhs := e.rhs
 	if lhs == -1 {
@@ -192,16 +192,21 @@ func (e Exp) eval(old int) int {
 	}
 	switch e.operation {
 	case Mul:
-		return lhs * rhs
+		answer = lhs * rhs
 	case Add:
-		return lhs + rhs
+		answer = lhs + rhs
 	}
-	panic("cannot")
+
+	if answer < 0 {
+		// oh shit, overflow
+		return 0, fmt.Errorf("Overflow! Answer = %d\n", answer)
+	}
+	return answer, nil
 }
 
-const RELIEF_DIVISOR = 3
+const ROUNDS = 10_000
 
-func monkeyTurn(m int) {
+func monkeyTurn(m int) (err error) {
 	/// Monkey 0:
 	///   Monkey inspects an item with a worry level of 79.
 	///     Worry level is multiplied by 19 to 1501.
@@ -214,32 +219,37 @@ func monkeyTurn(m int) {
 	my_items := me.items_worry_level
 
 	// empty out our inventory - after this turn we won't have items
-	me.items_worry_level = []int{}
+	me.items_worry_level = []int64{}
 
 	for _, itm := range my_items {
 		old_worry := itm
 		fmt.Printf("  Monkey inspects an item with a worry level of %d.\n", old_worry)
 		me.items_inspected++
-		new_worry := me.operationExpr.eval(old_worry)
-		post_relief := new_worry / RELIEF_DIVISOR
+		new_worry, err := me.operationExpr.eval(old_worry)
+		if err != nil {
+			return err
+		}
 		fmt.Printf("    Worry level is \"%s\" to %d.\n", me.operationExpr, new_worry)
-		fmt.Printf("    Monkey gets bored with item. Worry level is divided by %d to %d.\n", RELIEF_DIVISOR, post_relief)
-		if post_relief%me.test_divisible_by == 0 {
+		if new_worry%me.test_divisible_by == 0 {
 			fmt.Printf("    Current worry level is divisible by %d.\n", me.test_divisible_by)
-			fmt.Printf("    Item with worry level %d is thrown to monkey %d.\n", post_relief, me.if_true_throw_to)
-			monkeys[me.if_true_throw_to].items_worry_level = append(monkeys[me.if_true_throw_to].items_worry_level, post_relief)
+			fmt.Printf("    Item with worry level %d is thrown to monkey %d.\n", new_worry, me.if_true_throw_to)
+			monkeys[me.if_true_throw_to].items_worry_level = append(monkeys[me.if_true_throw_to].items_worry_level, new_worry)
 		} else {
 			fmt.Printf("    Current worry level is not divisible by %d.\n", me.test_divisible_by)
-			fmt.Printf("    Item with worry level %d is thrown to monkey %d.\n", post_relief, me.if_false_throw_to)
-			monkeys[me.if_false_throw_to].items_worry_level = append(monkeys[me.if_false_throw_to].items_worry_level, post_relief)
+			fmt.Printf("    Item with worry level %d is thrown to monkey %d.\n", new_worry, me.if_false_throw_to)
+			monkeys[me.if_false_throw_to].items_worry_level = append(monkeys[me.if_false_throw_to].items_worry_level, new_worry)
 		}
 	}
+	return nil
 }
 
-func performAllRounds() {
-	for round := 1; round <= 20; round++ {
+func performAllRounds() (err error) {
+	for round := 1; round <= ROUNDS; round++ {
 		for m := range monkeys {
-			monkeyTurn(m)
+			err := monkeyTurn(m)
+			if err != nil {
+				return err
+			}
 		}
 
 		fmt.Printf("\nAfter round %d, the monkeys are holding items with these worry levels:\n", round)
@@ -247,17 +257,18 @@ func performAllRounds() {
 			fmt.Printf("Monkey %d: %v\n", m, monkeys[m].items_worry_level)
 		}
 	}
+	return nil
 }
 
 var monkeys []Monkey
 
-func hottestMonkeys(monkeys []Monkey) []int {
-	hot := []int{}
+func hottestMonkeys(monkeys []Monkey) []int64 {
+	hot := []int64{}
 	for m := range monkeys {
 		hot = append(hot, monkeys[m].items_inspected)
 	}
-	// sort by descending order of hotness
-	sort.Sort(sort.Reverse(sort.IntSlice(hot)))
+	// sort by descending order of hotness - note flipped ><><
+	sort.Slice(hot, func(i, j int) bool { return hot[i] > hot[j] })
 	return hot
 }
 
@@ -281,7 +292,10 @@ func run() (err error) {
 	}
 	fmt.Printf("%v\n", monkeys)
 
-	performAllRounds()
+	err = performAllRounds()
+	if err != nil {
+		return err
+	}
 	for m := range monkeys {
 		fmt.Printf("Monkey %d inspected items %d times.\n", monkeys[m].id, monkeys[m].items_inspected)
 	}
