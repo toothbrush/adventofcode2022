@@ -181,6 +181,14 @@ func (e Exp) String() string {
 	return fmt.Sprintf("%s %s %s", lhs, op_s, rhs)
 }
 
+func monkeyProduct() int64 {
+	i := int64(1)
+	for m := range monkeys {
+		i *= monkeys[m].test_divisible_by
+	}
+	return i
+}
+
 func (e Exp) eval(old int64) (answer int64, err error) {
 	lhs := e.lhs
 	rhs := e.rhs
@@ -197,11 +205,15 @@ func (e Exp) eval(old int64) (answer int64, err error) {
 		answer = lhs + rhs
 	}
 
+	// okay, we preserve all the tests *for all monkeys* if we do all operations modulo the product
+	// of all monkeys' test divisors.
+	prod := monkeyProduct()
+
 	if answer < 0 {
 		// oh shit, overflow
 		return 0, fmt.Errorf("Overflow! Answer = %d\n", answer)
 	}
-	return answer, nil
+	return answer % prod, nil
 }
 
 const ROUNDS = 10_000
