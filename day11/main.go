@@ -21,16 +21,68 @@ const (
 	IfFalse
 )
 
+type Op int
+
+const (
+	Add Op = iota
+	Mul
+)
+
+type Exp struct {
+	operation Op
+	// assume that if lhs or rhs is -1, it's "old"
+	lhs int
+	rhs int
+}
+
 type Monkey struct {
 	id    int
 	items []int
 
-	operation string
+	operationExpr Exp
 
 	test_divisible_by int
 
 	if_true_throw_to  int
 	if_false_throw_to int
+}
+
+func parseExp(input string) (Exp, error) {
+	// assume string is of form "old * old" or "old + 3"
+	re := regexp.MustCompile("^(.+) ([+*]) (.+)$")
+	matches := re.FindStringSubmatch(input)
+	if len(matches) != 4 {
+		return Exp{}, fmt.Errorf("oh no, input formula nonsensical: %s", input)
+	}
+	e := Exp{}
+	switch matches[2] {
+	case "+":
+		e.operation = Add
+	case "*":
+		e.operation = Mul
+	default:
+		return Exp{}, fmt.Errorf("oh no, operator nonsensical: %s", matches[2])
+	}
+	// assume that if lhs or rhs is -1, it's "old"
+	if matches[1] == "old" {
+		e.lhs = -1
+	} else {
+		lhs_i, err := strconv.Atoi(matches[1])
+		if err != nil {
+			return Exp{}, err
+		}
+		e.lhs = lhs_i
+	}
+	if matches[3] == "old" {
+		e.rhs = -1
+	} else {
+		rhs_i, err := strconv.Atoi(matches[3])
+		if err != nil {
+			return Exp{}, err
+		}
+		e.rhs = rhs_i
+	}
+	return e, nil
 }
 
 func parseMonkeyList(input []string) ([]Monkey, error) {
@@ -66,7 +118,11 @@ func parseMonkeyList(input []string) ([]Monkey, error) {
 			state = Operation
 		case Operation:
 			operation_r := regexp.MustCompile("Operation: new = (.*)$")
-			m.operation = operation_r.FindStringSubmatch(i)[1]
+			exp, err := parseExp(operation_r.FindStringSubmatch(i)[1])
+			if err != nil {
+				return []Monkey{}, err
+			}
+			m.operationExpr = exp
 			state = Test
 		case Test:
 			test_r := regexp.MustCompile("Test: divisible by ([0-9]+)")
